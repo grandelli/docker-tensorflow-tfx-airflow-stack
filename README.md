@@ -1,4 +1,4 @@
-# docker-tf-airflow-stack
+# A Docker AI Stack based on TensorFlow / TFX / Jupyter / Airflow
 A Docker AI software stack based on TensorFlow / TFX / Jupyter / Airflow.
 
 ## Getting Started
