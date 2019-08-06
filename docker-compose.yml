@@ -1,0 +1,56 @@
+version: '3'
+services:
+    postgres:
+        image: postgres:9.6
+        container_name: postgres
+        environment:
+            - POSTGRES_USER=airflow
+            - POSTGRES_PASSWORD=airflow
+            - POSTGRES_DB=airflow
+
+    webserver:
+        image: puckel/docker-airflow:latest
+        container_name: airflow
+        restart: always
+        depends_on:
+            - postgres
+        environment:
+            - LOAD_EX=n
+            - EXECUTOR=Local
+        volumes:
+            - ${HOME}/airflow-dags:/usr/local/airflow/dags
+            # Uncomment to include custom plugins
+            # - ./plugins:/usr/local/airflow/plugins
+        ports:
+            - "8088:8080"
+        command: webserver
+        healthcheck:
+            test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+            interval: 30s
+            timeout: 30s
+            retries: 3
+            
+    # compose does not support the new --gpus option available in docker 19.03 yet
+    tf-jupyter:
+        image: tensorflow/tensorflow:latest-gpu-py3-jupyter
+        container_name: tf-jupyter
+        restart: always
+        environment:
+            - JUPYTER_TOKEN=jupyter
+        volumes:
+            - ${HOME}/notebooks:/tf/notebooks
+            - ${HOME}/tf-models:/tf/models
+        ports:
+            - "8888:8888"
+            
+    # compose does not support the new --gpus option available in docker 19.03 yet
+    tf-serving:
+        image: tensorflow/serving:latest-gpu
+        container_name: tf-serving
+        restart: always
+        environment:
+            - MODEL_NAME=fashion_model
+        volumes:
+            - ${HOME}/tf-models:/models/fashion_model
+        ports:
+            - "8501:8501"

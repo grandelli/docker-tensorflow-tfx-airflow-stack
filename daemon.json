@@ -1,0 +1,6 @@
+{
+    "live-restore": true,
+    "data-root": "/home/docker",
+    "group": "docker",
+    "storage-driver": "overlay2"
+}
