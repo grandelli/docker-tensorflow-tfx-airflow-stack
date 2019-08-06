@@ -9,17 +9,22 @@ Different references are already available on the Web for the configuration of e
 
 Have a look at these guidelines if you are interested in any of these topics:
 * you aim to setup a data science env on a single server for collaborative working
-* you would like to leverage on GPUs deployed in your env using Docker. Indeed, these guidelines are focused on Docker 19.03, which natively supports NVIDIA GPU
+* you would like to leverage on GPUs deployed in your env using Docker. 
 * you are interested in Apache Airflow to orchestrate your ML pipelines
 * you want to setup a pre-prod env, where you can both develop new models, then deploying them and finally validating the whole production cycle, since these guidelines install both a TensorFlow + Jupyter container ad a TensorFlow Serving TFX container.
 
 ### Prerequisites
+These guidelines:
+* have been validated on Linux Centos 7. While I don't see any significant change in the procedure for Docker commands, installation of Linux packages might require a different syntax (e.g. on Ubuntu-like paltform).
+* are focused on Docker 19.03, which natively supports NVIDIA GPU
+* are mainly conceived for those willing to exploit GPUs on Docker. However, I will also provide alternative instructions for CPU-only envs
 
-What things you need to install the software and how to install them
-
-```
-Give examples
-```
+Linux pre-requisite packages to install are:
+``` sh
+yum install -y yum-utils \
+device-mapper-persistent-data \
+lvm2
+````
 
 ### Installing
 
