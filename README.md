@@ -208,7 +208,7 @@ Two comments on its current configuration are:
 
 Once started up everything, you can access Airflow console at http://your-lab-ip:8088/admin/
 
-### TensorFlow & Jupyter Notebook
+### TensorFlow & Jupyter Container
 TensorFlow & Jupyter (**tf-jupyter**) is the container devoted to ML development, model training and evaluation.
 
 Some comments:
@@ -238,8 +238,9 @@ Some comments:
 ```
 $ docker run --gpus all -it --rm -v /home/randelli/notebooks:/tf/notebooks -p 8888:8888 tensorflow/tensorflow:latest-gpu-py3-jupyter
 ```
+**Head-up**: Jupyter is a local notebook, which is typically accessible through local host at http://localhost:8888. Since in our case we are running on a remote server, we need to establish an SSH tunnel to access it. Not going into details on how to establish an SSH tunnel here.
 
-### TensorFlow Serving (TFX)
+### TensorFlow Serving (TFX) Container
 TensorFlow Serving (**tf-serving**) is the container devoted to deploy and run ML trained models.
 
 Some comments:
@@ -269,6 +270,20 @@ Some comments:
 $ docker run --gpus all -it --rm -v /home/randelli/notebooks:/tf/notebooks -p 8888:8888 tensorflow/serving:latest-gpu
 ```
 
+### Service Startup
+To launch all the configured services, simply enter the folder where your docker-compose.yml is stored and type:
+```
+$ docker-compose -f docker-compose.yml up -d
+```
+If you want to stop all of them, similarly type:
+```
+$ docker-compose stop
+```
+
+## Future Improvements
+* To analyze the adoption of Jupyter Hub to remove the local constraint of Jupyter Notebook
+* To update the guide as soon as there will be a new Docker-Compose release fully compliant to Docker's native GPU support
+* To run a single TensorFlow Serving container supporting multiple trained models in order not to hardcode the trained model name in the Compose config file
 
 ## Authors
 
