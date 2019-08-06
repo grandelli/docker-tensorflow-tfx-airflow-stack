@@ -14,7 +14,7 @@ Have a look at these guidelines if you are interested in any of these topics:
 * you want to setup a pre-prod env, where you can both develop new models, then deploying them and finally validating the whole production cycle, since these guidelines install both a TensorFlow + Jupyter container ad a TensorFlow Serving TFX container.
 * you want to operate Docker as non-root user
 
-### Prerequisites
+## Prerequisites
 Heads-up:
 * this procedure has been validated on Linux Centos 7. While I don't see any significant problem in running the same Docker commands in other environments, installation of pre-requisite packages / configuration procedures might require a different syntax (e.g. on Ubuntu-like platforms).
 * guidelines are focused on Docker 19.03, the first version natively supporting NVIDIA GPU
@@ -30,6 +30,10 @@ Thereby, below I'm reporting the different product versions adopted:
 * Tensorflow: 1.14 [web](https://hub.docker.com/r/tensorflow/tensorflow/)
 * Tensorflow Serving TFX: 1.14 [web](https://hub.docker.com/r/tensorflow/serving)
 * CUDA Toolkit: 10.0 (please, avoid using 10.1!) [web](https://docs.nvidia.com/cuda/archive/10.0/)
+
+I'm assuming you know basic Linux and Docker commands here.
+
+## Installation
 
 ### Docker
 Please refer to the official Docker [documentation](https://docs.docker.com/install/) for additional info.
@@ -166,7 +170,104 @@ To test it, type (as non-root):
 $ docker-compose --version
 ```
 
-### ML Stack Deployment & Configuration
+## ML Stack Configuration & Startup
+The first thing to do is to upload the Docker-compose configuration file docker-compose.yml in a folder accessible from your non-root user. Let's highlight few relevant sections of this file before starting it up:
+
+The first important remark is that Dockers's container should be **stateless** and without data persistency. As a matter of fact, a good practice in favour of container re-use and sharing is never to commit any change. If so, where are we storing our trained models, our Python code, or our Airflow DAGs?
+Docker owns the concept of [volume](https://docs.docker.com/storage/volumes/), folders residing on the host file system, which can be mounted to the containers at startup. These folders will allow for persistency.
+
+Wherever in my Docker-Compose file you find out a section like this:
+```
+        volumes:
+            - ${HOME}/airflow-dags:/usr/local/airflow/dags
+```
+you know I'm mounting a local file system folder as a container folder.
+
+The second remark is that one advantage of Docker-Compose over plain Docker is the automatic [networking](https://docs.docker.com/compose/networking/) functionality to bridge the different containers and let them interact. Imagine the following scenario in our ML stack: we have a ML model already trained and deployed in the TensorFlow Serving container. We would like to test it by submitting some prediction requests, and we would like to create these requests through the TensorFlow Client container, using Jupyter notebook. Needless to say, we need to invoke the Serving container, which turns into networking between the client and the server. Here is where Compose steps up. In the Compose YML file each container has a name, which is also the reachable hostname:
+```
+   tf-serving:
+        image: tensorflow/serving:latest-gpu
+```
+
+### Airflow Container
+Airflow container is named **webserver** and is devoted to ML pipelines orchestration and execution. It relies on another Postgres container. 
+
+Two comments on its current configuration are:
+
+1. I personally avoid using port 8080, since this is a common Web Server port, hence I'm mapping service port 8080 as port **8088**
+```
+        ports:
+            - "8088:8080"
+```
+
+2. As already described, we are relying on volumes to store DAGs. In particular:
+```
+        volumes:
+            - ${HOME}/airflow-dags:/usr/local/airflow/dags
+```
+
+Once started up everything, you can access Airflow console at http://your-lab-ip:8088/admin/
+
+### TensorFlow & Jupyter Notebook
+TensorFlow & Jupyter (**tf-jupyter**) is the container devoted to ML development, model training and evaluation.
+
+Some comments:
+
+1. Jupyter notebook runs on port **8888**, and for the ease of access the JUPYTER_TOKEN is statically set as **jupyter**
+2. We are relying on two different volumes, one to store trained models and the other one to save Jupyter notebooks:
+```
+        volumes:
+            - ${HOME}/notebooks:/tf/notebooks
+            - ${HOME}/tf-models:/tf/models
+```
+3. The tricky part... the Docker image to use:
+
+        i. [TensorFlow GPU]
+```
+    tf-jupyter:
+        image: tensorflow/tensorflow:latest-gpu-py3-jupyter
+```
+
+        ii. [TensorFlow CPU]
+```
+    tf-jupyter:
+        image: tensorflow/tensorflow:latest-py3-jupyter
+```
+
+**Head-up**: even if you're adopting the GPU version you have to understand, as already mentioned, that Docker-COmpose currently **does not implement native Docker GPU support**. Thereby, if you really need to use GPUs, use Docker-Compose only to start Airflow, then adopt plain Docker to launch TensorFlow & Jupyter Client. A command example is:
+```
+$ docker run --gpus all -it --rm -v /home/randelli/notebooks:/tf/notebooks -p 8888:8888 tensorflow/tensorflow:latest-gpu-py3-jupyter
+```
+
+### TensorFlow Serving (TFX)
+TensorFlow Serving (**tf-serving**) is the container devoted to deploy and run ML trained models.
+
+Some comments:
+
+1. TensorFlow Serving runs on port **8501**
+2. Unfortunately when launching TensorFlow Serving we need to explivitly address the desired model, hence we should have a single container per trained model. In the configuration file this requires to mount the specific folder where the model has been stored from the TensorFlow & Jupyter client. In my example I'm assuming to have already trained a model **fashion_model**, but feel free to rename it as you want:
+```
+        volumes:
+            - ${HOME}/tf-models:/models/fashion_model
+```
+3. The tricky part... the Docker image to use:
+
+        i. [TensorFlow Serving GPU]
+```
+    tf-serving:
+        image: tensorflow/serving:latest-gpu
+```
+
+        ii. [TensorFlow Serving CPU]
+```
+    tf-serving:
+        image: tensorflow/serving:latest
+```
+
+**Head-up**: even if you're adopting the GPU version you have to understand, as already mentioned, that Docker-COmpose currently **does not implement native Docker GPU support**. Thereby, if you really need to use GPUs, use Docker-Compose only to start Airflow, then adopt plain Docker to launch TensorFlow Serving TFX. A command example is:
+```
+$ docker run --gpus all -it --rm -v /home/randelli/notebooks:/tf/notebooks -p 8888:8888 tensorflow/serving:latest-gpu
+```
 
 
 ## Authors
