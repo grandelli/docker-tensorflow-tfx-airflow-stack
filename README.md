@@ -3,9 +3,9 @@ A Docker AI software stack based on TensorFlow / TFX / Jupyter / Airflow.
 
 ## Getting Started
 
-The goal of this project is to provide guidelines (and some config file) to deploy with low effort a software stack for data scientists based on Docker.
+The goal of this project is to provide guidelines (and some config file) to deploy with low effort a software stack for ML practitioners based on Docker.
 
-Different references are already available on the Web for the configuration of each of the aforementioned components, but not all these docs are updated (e.g. TensorFlow on Docker 19.03), and they typically cover only the basic setup needs. 
+Different references are already available on the Web for the configuration of each of the aforementioned components, but not all these docs are updated (e.g. running TensorFlow GPU version with Docker CE 19.03), and they typically cover only the basic setup needs. 
 
 Have a look at these guidelines if you are interested in any of these topics:
 * you aim to setup a data science env on a single server for collaborative working
@@ -24,6 +24,8 @@ One very important aspect to highlight is that, **in order to use GPU, you need 
 
 Furthermore, **it is mandatory to respect the versioning matrix between CUDA and TensorFlow**, if you don't want to waste a lot of time.
 Thereby, below I'm reporting the different product versions adopted:
+* Docker CE 19.03 [web](https://docs.docker.com/install/)
+* Docker-Compose 1.24.1 [web](https://docs.docker.com/compose/)
 * Apache Airflow: 1.10.3 [web](https://github.com/puckel/docker-airflow)
 * Tensorflow: 1.14 [web](https://hub.docker.com/r/tensorflow/tensorflow/)
 * Tensorflow Serving TFX: 1.14 [web](https://hub.docker.com/r/tensorflow/serving)
@@ -32,7 +34,7 @@ Thereby, below I'm reporting the different product versions adopted:
 ### Docker
 Please refer to the official Docker [documentation](https://docs.docker.com/install/) for additional info.
 
-As already mentioned, I'll be explicitly referring to Docker 19.03. Its advantage is to natively suppport NVIDIA GPUs, hence lowering the effort to enable GPU support.
+As already mentioned, I'll be explicitly referring to Docker CE 19.03. Its advantage is to natively suppport NVIDIA GPUs, hence lowering the effort to enable GPU support.
 
 Linux pre-requisite packages to install are:
 ``` sh
@@ -41,7 +43,7 @@ device-mapper-persistent-data \
 lvm2
 ```
 
-Docker 19.03 is not the default version supported by Centos. Hence, let's start by removing existing versions on your env:
+Docker CE 19.03 is not the default version supported by Centos. Hence, let's start by removing existing versions on your env:
 ``` sh
 # yum remove docker \
                   docker-client \
@@ -60,7 +62,7 @@ Add the official Docker repository:
     https://download.docker.com/linux/centos/docker-ce.repo
 ```
 
-Install Docker 19.03:
+Install Docker CE 19.03:
 ``` sh
 # yum install docker-ce docker-ce-cli containerd.io
 # systemctl start docker
@@ -79,9 +81,93 @@ Finally,  run docker's "hello world":
 
 So far so good (if you didn't get any error)... congrats!
 
+#### Docker Configuration
+
 Now it's time to fine-tune our Docker installation. Throughout this section we will dig into the following configurations:
-* I don't personally like working as root user, hence let's configure Docker to accept commands from normal users
-* Docker by default is installed in /var/lib/docker folder. What if you have a dedicated partition and would like Docker to store all the images over there? We need to change this as well.
+1. I don't personally like working as root user, hence let's configure Docker to accept commands from normal users
+2. Docker by default is installed in /var/lib/docker folder. What if you have a dedicated partition and would like Docker to store all the images over there? We need to change this as well.
+
+##### Non-root User
+If not already available, as root create docker group on Linux:
+```
+# groupadd docker
+```
+
+Then, add the user you want to use to this group:
+```
+# usermod -aG docker [non-root user]
+```
+
+To check if everything worked fine, log as [non-root user] and try again the "hello world":
+```
+$ docker run hello-world
+```
+
+##### Move Docker's root folder
+Let'start by stopping Docker's daemon (as root):
+```
+# systemctl stop docker
+```
+
+Change Docker's root folder:
+```
+# mv /var/lib/docker [dest folder]
+```
+
+Now upload on your server the file daemon.json to /etc/docker folder (create it if not existing). Edit the file and change the following line:
+```
+    "data-root": "/home/docker",
+```
+
+replacing /home/docker with your destination folder.
+Last, restart the service:
+```
+# systemctl start docker
+```
+
+### NVIDIA Docker
+Skip this section if your env is not equipped with GPUs, or you're not interested in running TensorFlow on GPUs!
+
+The NVIDIA Docker plugin enables deployment of GPU-accelerated applications across any Linux GPU server with NVIDIA Docker support. Official NVIDIA Docker documentation is available [here](https://github.com/NVIDIA/nvidia-docker).
+
+As already mentioned, life is much easier with Docker 19.03, since the old nvidia-docker package is not anymore required. We need to install only one more package, the NVIDIA Container Toolkit, by typing (as root):
+
+```
+# distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+# curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.repo | sudo tee /etc/yum.repos.d/nvidia-docker.repo
+# sudo yum install -y nvidia-container-toolkit
+# sudo systemctl restart docker
+```
+
+Pay attention to restart Docker , or you won't see any difference.
+In order to test if it worked out, type (as non root):
+```
+$ docker run --gpus all nvidia/cuda:10.0-base nvidia-smi
+```
+
+The important param is **--gpus all**, which comes out with the new Docker version.
+
+### Docker-Compose
+Compose is a tool for defining and running multi-container Docker applications. With Compose, you use a YAML file to configure your application’s services. Then, with a single command, you create and start all the services from your configuration.
+
+Within the scope of this project, since we have four different containers, we will be relying on Compose.
+
+**Heads-up**: the current version of Compose (v1.24.1 - 2019/08/06) is not compliant to the the new GPU capabilities of Docker CE 19.03 (--gpus param), hence we can't run GPU-enabled TensorFlow images through Compose. Nevertheless, it's a good exercise to have a YML file orchestrating all of them. In case your ML training is really consuming and you need GPUs, I will provide commands to run TF containers with GPU enabled without Composer. Obviously, this is not relevant for those of you interested in CPU-only TensorFlow.
+
+To install Docker-Compose, type (as root):
+```
+- curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+- chmod +x /usr/local/bin/docker-compose
+- ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose 
+```
+
+To test it, type (as non-root):
+```
+$ docker-compose --version
+```
+
+### ML Stack Deployment & Configuration
+
 
 ## Authors
 
