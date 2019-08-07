@@ -117,7 +117,7 @@ Change Docker's root folder:
 # mv /var/lib/docker [dest folder]
 ```
 
-Now upload on your server the file daemon.json to */etc/docker* folder (create it if not existing). Edit the file and change the following line:
+Now upload on your server the file [https://github.com/grandelli/docker-tensorflow-tfx-airflow-stack/blob/master/daemon.json](daemon.json) to */etc/docker* folder (create it if not existing). Edit the file and change the following line:
 ``` sh
     "data-root": "/home/docker",
 ```
@@ -170,7 +170,7 @@ $ docker-compose --version
 ```
 
 ## AI Service Configuration & Startup
-The first thing to do is to upload the Docker-Compose configuration file *docker-compose.yml* in a folder accessible from your non-root user. Let's highlight few relevant sections of this file before launching it.
+The first thing to do is to upload the Docker-Compose configuration file [https://github.com/grandelli/docker-tensorflow-tfx-airflow-stack/blob/master/docker-compose.yml](docker-compose.yml) in a folder accessible from your non-root user. Let's highlight few relevant sections of this file before launching it.
 
 The first important remark is that Dockers's container should be **stateless** and without data persistency. As a matter of fact, a good practice in favour of container re-use and sharing is to avoid any commit. Where should we store our trained models, our notebooks, or our Airflow DAGs?
 Docker owns the concept of [volume](https://docs.docker.com/storage/volumes/), folders residing on the host file system, which can be mounted to the containers at startup. These folders will allow for persistent data storage.
@@ -221,13 +221,13 @@ Some comments on this service:
 ```
 3. The tricky part is the Docker image to use (change in the Docker-Compose config file accordingly):
 
-        i. [TensorFlow GPU]
+   i. [TensorFlow GPU]
 ``` yaml
     tf-jupyter:
         image: tensorflow/tensorflow:latest-gpu-py3-jupyter
 ```
 
-        ii. [TensorFlow CPU]
+   ii. [TensorFlow CPU]
 ``` yaml
     tf-jupyter:
         image: tensorflow/tensorflow:latest-py3-jupyter
@@ -239,7 +239,7 @@ $ docker run --gpus all -it --rm -v ${HOME}/notebooks:/tf/notebooks -p 8888:8888
 ```
 **Heads-up**: Jupyter is a local notebook, which is typically accessible through local host at http://localhost:8888. Since in our case we are running on a remote server, we need to establish an SSH tunnel to access it. Not going into details on how to establish an SSH tunnel here.
 
-Once started up everything, and created SSH tunneling, you can access Jupyter notebook at http://localhost:8888/
+Once started up everything, and created SSH tunneling, you can access Jupyter notebook at http://localhost:8888/ (enter the Jupyter Token statically configured).
 
 ### TensorFlow Serving (TFX)
 TensorFlow Serving (**tf-serving**) is the container devoted to deploy and run ML trained models.
