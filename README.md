@@ -248,7 +248,7 @@ TensorFlow Serving (**tf-serving**) is the container devoted to deploy and run M
 Some comments:
 
 1. TensorFlow Serving runs on port **8501**
-2. TensorFlow Serving shares the same model folder used by the Jupyter container. Whenever you will train a new model and store it in */models* folder, it will automatically be shared with the Serving container:
+2. TensorFlow Serving shares the same model folder used by the Jupyter container. Whenever you will train a new model and store it in */models* folder, it will be automatically shared with the Serving container:
 ``` yaml
         volumes:
             - ${HOME}/models:/models/
@@ -270,7 +270,7 @@ model_config_list {
 5. The tricky part is the Docker image to use (change in the Docker-Compose config file accordingly):
 
    i. TensorFlow Serving GPU
-
+``` yaml
     tf-serving:
         image: tensorflow/serving:latest-gpu
 ```
