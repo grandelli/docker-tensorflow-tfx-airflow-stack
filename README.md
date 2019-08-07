@@ -1,6 +1,8 @@
 # A Docker AI stack based on TensorFlow / TFX / Jupyter / Airflow
 A Docker AI software stack based on TensorFlow / TFX / Jupyter / Airflow.
 
+Latest Update: 2019-08-07
+
 ## Getting Started
 
 The goal of this project is to provide a guide (and some configuration file) to deploy with low effort an AI software stack for ML practitioners willing to ease the installation effort via Docker.
@@ -40,7 +42,7 @@ Please refer to the official Docker [documentation](https://docs.docker.com/inst
 As already mentioned, I'll be explicitly referring to Docker CE 19.03. Its advantage is to natively suppport NVIDIA GPUs, lowering the setup effort.
 
 Linux prerequisite packages to install are:
-``` sh
+``` console
 # yum install -y yum-utils \
 device-mapper-persistent-data \
 lvm2
