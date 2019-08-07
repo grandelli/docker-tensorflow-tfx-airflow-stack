@@ -214,11 +214,11 @@ TensorFlow & Jupyter (**tf-jupyter**) is the service devoted to ML development, 
 Some comments on this service:
 
 1. Jupyter notebook runs on port **8888**, and for the ease of access the JUPYTER_TOKEN is statically set as **jupyter**
-2. We are relying on two different volumes, one to store trained models and the other one to save Jupyter notebooks:
+2. We are relying on two different volumes, one to save Jupyter notebooks and the other one to store trained models:
 ``` yaml
         volumes:
             - ${HOME}/notebooks:/tf/notebooks
-            - ${HOME}/tf-models:/tf/models
+            - ${HOME}/models:/tf/models
 ```
 3. The tricky part is the Docker image to use (change in the Docker-Compose config file accordingly):
 
@@ -248,15 +248,29 @@ TensorFlow Serving (**tf-serving**) is the container devoted to deploy and run M
 Some comments:
 
 1. TensorFlow Serving runs on port **8501**
-2. Unfortunately, when launching TensorFlow Serving we need to explicitly address the desired model, hence we should have a single container per each trained model. In the configuration file this requires to mount the specific folder where the model has been stored from the TensorFlow & Jupyter client. In my example I'm assuming to have already trained a model **fashion_model**, but feel free to rename it as you want:
+2. TensorFlow Serving shares the same model folder used by the Jupyter container. Whenever you will train a new model and store it in */models* folder, it will automatically be shared with the Serving container:
 ``` yaml
         volumes:
-            - ${HOME}/tf-models:/models/fashion_model
+            - ${HOME}/models:/models/
 ```
-3. The tricky part is the Docker image to use (change in the Docker-Compose config file accordingly):
+3. TensorFlow Serving has been configured to handle multiple models within the same container. This allows us to avoid to hardcode the model name in the *docker-compose.yml* file. So far, this is the most elegant solution I've found. This is achieved through a *command* section where we specify a config file for TFX, named *models.config*:
+``` yaml
+        command: --model_config_file=/models/models.config --model_config_file_poll_wait_seconds=60
+```
+4.*models.config* file contains a section per trained model. Unfortunately this file must be manually updated everytime you add a new trained model (but at least it's decoupled from Docker config files):
+``` yaml
+model_config_list {
+  config {
+    name: 'fashion_model'
+    base_path: '/models/fashion_model'
+    model_platform: 'tensorflow'
+  }
+}
+```
+5. The tricky part is the Docker image to use (change in the Docker-Compose config file accordingly):
 
    i. TensorFlow Serving GPU
-``` yaml
+
     tf-serving:
         image: tensorflow/serving:latest-gpu
 ```
@@ -285,7 +299,6 @@ $ docker-compose stop
 ## Future Improvements
 * Analyze the adoption of Jupyter Hub to remove the local constraint of Jupyter Notebook
 * Update the guide as soon as there will be a new Docker-Compose release fully compliant to Docker's native GPU support
-* Run a single TensorFlow Serving container supporting multiple trained models, not to hardcode the trained model name in the Docker-Compose config file
 
 ## Authors
 
