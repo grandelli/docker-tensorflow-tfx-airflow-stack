@@ -39,7 +39,7 @@ services:
             - JUPYTER_TOKEN=jupyter
         volumes:
             - ${HOME}/notebooks:/tf/notebooks
-            - ${HOME}/tf-models:/tf/models
+            - ${HOME}/models:/tf/models
         ports:
             - "8888:8888"
             
@@ -48,9 +48,8 @@ services:
         image: tensorflow/serving:latest-gpu
         container_name: tf-serving
         restart: always
-        environment:
-            - MODEL_NAME=fashion_model
         volumes:
-            - ${HOME}/tf-models:/models/fashion_model
+            - ${HOME}/models:/models/
         ports:
             - "8501:8501"
+        command: --model_config_file=/models/models.config --model_config_file_poll_wait_seconds=60
