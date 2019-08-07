@@ -49,7 +49,7 @@ lvm2
 ```
 
 Docker CE 19.03 is not the default version supported by Centos. Hence, let's start by removing existing versions on your env:
-``` sh
+``` console
 # yum remove docker \
                   docker-client \
                   docker-client-latest \
@@ -61,26 +61,26 @@ Docker CE 19.03 is not the default version supported by Centos. Hence, let's sta
 ```
 
 Add the official Docker repository:
-``` sh
+``` console
 # yum-config-manager \
     --add-repo \
     https://download.docker.com/linux/centos/docker-ce.repo
 ```
 
 Install Docker CE 19.03:
-``` sh
+``` console
 # yum install docker-ce docker-ce-cli containerd.io
 # systemctl start docker
 
 ```
 To check if setup was successful, type the following:
-``` sh
+``` console
 # docker --version
 Docker version 19.03.1, build 74b1e89
 ```
 
 Finally,  run Docker's "hello world":
-``` sh
+``` console
 # docker run hello-world
 ```
 
@@ -94,39 +94,39 @@ Throughout this section we will dig into the following configurations:
 
 ##### Non-root User
 If not already available, as root create a new *docker* group on Linux:
-``` sh
+``` console
 # groupadd docker
 ```
 
 Then, add the non-root user you want to this group:
-``` sh
+``` console
 # usermod -aG docker [non-root user]
 ```
 
 To check if everything worked fine, log as [non-root user] and try again the "hello world":
-``` sh
+``` console
 $ docker run hello-world
 ```
 
 ##### Move Docker's root folder
 Let'start by stopping Docker's daemon (as root):
-``` sh
+``` console
 # systemctl stop docker
 ```
 
 Change Docker's root folder:
-``` sh
+``` console
 # mv /var/lib/docker [dest folder]
 ```
 
 Now upload on your server the file [daemon.json](https://github.com/grandelli/docker-tensorflow-tfx-airflow-stack/blob/master/daemon.json) to */etc/docker* folder (create it if not existing). Edit the file and change the following line:
-``` sh
+``` console
     "data-root": "/home/docker",
 ```
 
 replacing */home/docker* with your destination folder.
 Last, restart the service:
-``` sh
+``` console
 # systemctl start docker
 ```
 
@@ -137,7 +137,7 @@ The NVIDIA Docker plugin enables deployment of GPU-accelerated applications acro
 
 As already mentioned, life is much easier with Docker CE 19.03, since the old nvidia-docker package is not anymore required. We need to install only one more package, the NVIDIA Container Toolkit, by typing (as root):
 
-``` sh
+``` console
 # distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
 # curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.repo | sudo tee /etc/yum.repos.d/nvidia-docker.repo
 # sudo yum install -y nvidia-container-toolkit
@@ -146,7 +146,7 @@ As already mentioned, life is much easier with Docker CE 19.03, since the old nv
 
 Pay attention to restart Docker , or you won't see any difference!
 In order to test if it worked out, type (as non root):
-``` sh
+``` console
 $ docker run --gpus all nvidia/cuda:10.0-base nvidia-smi
 ```
 
@@ -160,14 +160,14 @@ Within the scope of this project, since we have four different services, we will
 **Heads-up**: the current version of Compose (v1.24.1 - 2019/08/06) is not compliant to the the new GPU capabilities of Docker CE 19.03 (--gpus param), hence we can't run GPU-enabled TensorFlow containers via Compose. Nevertheless, it's a good exercise to have a YML file orchestrating all of them. In case your ML training is really compute-demanding and you need GPUs, I will provide commands to run TF containers with GPU enabled without Composer. Obviously, this is not relevant for those of you interested in CPU-only TensorFlow.
 
 To install Docker-Compose, type (as root):
-``` sh
+``` console
 - curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 - chmod +x /usr/local/bin/docker-compose
 - ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose 
 ```
 
 To test it, type (as non-root):
-``` sh
+``` console
 $ docker-compose --version
 ```
 
@@ -236,7 +236,7 @@ Some comments on this service:
 ```
 
 **Heads-up**: even if you're adopting the TF GPU version you have to understand, as already mentioned, that Docker-Compose currently **does not implement any native Docker GPU support**. Thereby, if you really need to use GPUs, use Docker-Compose only to start Airflow, then adopt plain Docker to launch TensorFlow & Jupyter Client. A command example is:
-``` sh
+``` console
 $ docker run --gpus all -it --rm -v ${HOME}/notebooks:/tf/notebooks -p 8888:8888 tensorflow/tensorflow:latest-gpu-py3-jupyter
 ```
 **Heads-up**: Jupyter is a local notebook, which is typically accessible through local host at http://localhost:8888. Since in our case we are running on a remote server, we need to establish an SSH tunnel to access it. Not going into details on how to establish an SSH tunnel here.
@@ -269,17 +269,17 @@ Some comments:
 ```
 
 **Heads-up**: even if you're adopting the GPU version you have to understand, as already mentioned, that Docker-Compose currently **does not implement any native Docker GPU support**. Thereby, if you really need to use GPUs, use Docker-Compose only to start Airflow, then adopt plain Docker to launch TensorFlow Serving TFX. A command example is:
-``` sh
+``` console
 $ docker run --gpus all -it --rm -v /home/randelli/notebooks:/tf/notebooks -p 8888:8888 tensorflow/serving:latest-gpu
 ```
 
 ### Service Startup
 To launch all the configured services, simply enter the folder where your *docker-compose.yml* is stored and type:
-``` sh
+``` console
 $ docker-compose -f docker-compose.yml up -d
 ```
 If you want to stop services, type:
-``` sh
+``` console
 $ docker-compose stop
 ```
 
