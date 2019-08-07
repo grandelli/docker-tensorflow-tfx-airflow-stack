@@ -136,7 +136,6 @@ Skip this section if your env is not equipped with any GPU, or you're not intere
 The NVIDIA Docker plugin enables deployment of GPU-accelerated applications across any Linux GPU server with NVIDIA Docker support. Official NVIDIA Docker documentation is available [here](https://github.com/NVIDIA/nvidia-docker).
 
 As already mentioned, life is much easier with Docker CE 19.03, since the old nvidia-docker package is not anymore required. We need to install only one more package, the NVIDIA Container Toolkit, by typing (as root):
-
 ``` console
 # distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
 # curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.repo | sudo tee /etc/yum.repos.d/nvidia-docker.repo
@@ -161,9 +160,9 @@ Within the scope of this project, since we have four different services, we will
 
 To install Docker-Compose, type (as root):
 ``` console
-- curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-- chmod +x /usr/local/bin/docker-compose
-- ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose 
+# curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+# chmod +x /usr/local/bin/docker-compose
+# ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose 
 ```
 
 To test it, type (as non-root):
