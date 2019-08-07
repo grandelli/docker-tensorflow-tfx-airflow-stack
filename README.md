@@ -221,13 +221,13 @@ Some comments on this service:
 ```
 3. The tricky part is the Docker image to use (change in the Docker-Compose config file accordingly):
 
-   i. [TensorFlow GPU]
+   i. TensorFlow GPU
 ``` yaml
     tf-jupyter:
         image: tensorflow/tensorflow:latest-gpu-py3-jupyter
 ```
 
-   ii. [TensorFlow CPU]
+   ii. TensorFlow CPU
 ``` yaml
     tf-jupyter:
         image: tensorflow/tensorflow:latest-py3-jupyter
@@ -254,13 +254,13 @@ Some comments:
 ```
 3. The tricky part is the Docker image to use (change in the Docker-Compose config file accordingly):
 
-   i. [TensorFlow Serving GPU]
+   i. TensorFlow Serving GPU
 ``` yaml
     tf-serving:
         image: tensorflow/serving:latest-gpu
 ```
 
-   ii. [TensorFlow Serving CPU]
+   ii. TensorFlow Serving CPU
 ``` yaml
     tf-serving:
         image: tensorflow/serving:latest
