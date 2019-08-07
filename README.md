@@ -117,7 +117,7 @@ Change Docker's root folder:
 # mv /var/lib/docker [dest folder]
 ```
 
-Now upload on your server the file [https://github.com/grandelli/docker-tensorflow-tfx-airflow-stack/blob/master/daemon.json](daemon.json) to */etc/docker* folder (create it if not existing). Edit the file and change the following line:
+Now upload on your server the file [daemon.json](https://github.com/grandelli/docker-tensorflow-tfx-airflow-stack/blob/master/daemon.json) to */etc/docker* folder (create it if not existing). Edit the file and change the following line:
 ``` sh
     "data-root": "/home/docker",
 ```
@@ -170,7 +170,7 @@ $ docker-compose --version
 ```
 
 ## AI Service Configuration & Startup
-The first thing to do is to upload the Docker-Compose configuration file [https://github.com/grandelli/docker-tensorflow-tfx-airflow-stack/blob/master/docker-compose.yml](docker-compose.yml) in a folder accessible from your non-root user. Let's highlight few relevant sections of this file before launching it.
+The first thing to do is to upload the Docker-Compose configuration file [docker-compose.yml](https://github.com/grandelli/docker-tensorflow-tfx-airflow-stack/blob/master/docker-compose.yml) in a folder accessible from your non-root user. Let's highlight few relevant sections of this file before launching it.
 
 The first important remark is that Dockers's container should be **stateless** and without data persistency. As a matter of fact, a good practice in favour of container re-use and sharing is to avoid any commit. Where should we store our trained models, our notebooks, or our Airflow DAGs?
 Docker owns the concept of [volume](https://docs.docker.com/storage/volumes/), folders residing on the host file system, which can be mounted to the containers at startup. These folders will allow for persistent data storage.
@@ -254,13 +254,13 @@ Some comments:
 ```
 3. The tricky part is the Docker image to use (change in the Docker-Compose config file accordingly):
 
-        i. [TensorFlow Serving GPU]
+   i. [TensorFlow Serving GPU]
 ``` yaml
     tf-serving:
         image: tensorflow/serving:latest-gpu
 ```
 
-        ii. [TensorFlow Serving CPU]
+   ii. [TensorFlow Serving CPU]
 ``` yaml
     tf-serving:
         image: tensorflow/serving:latest
