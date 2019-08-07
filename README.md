@@ -36,6 +36,8 @@ Finally, I'm assuming you know basic Linux and Docker commands.
 
 ## Installation
 
+Clone this repo and store it in your non-root ${HOME} folder on your server.
+
 ### Docker
 Please refer to the official Docker [documentation](https://docs.docker.com/install/) for additional info.
 
@@ -119,7 +121,7 @@ Change Docker's root folder:
 # mv /var/lib/docker [dest folder]
 ```
 
-Now upload on your server the file [daemon.json](https://github.com/grandelli/docker-tensorflow-tfx-airflow-stack/blob/master/daemon.json) to */etc/docker* folder (create it if not existing). Edit the file and change the following line:
+Move the file [daemon.json](https://github.com/grandelli/docker-tensorflow-tfx-airflow-stack/blob/master/docker/daemon.json) to */etc/docker/* folder (create the folder if not existing). Edit the file and change the following line:
 ``` console
     "data-root": "/home/docker",
 ```
@@ -171,7 +173,7 @@ $ docker-compose --version
 ```
 
 ## AI Service Configuration & Startup
-The first thing to do is to upload the Docker-Compose configuration file [docker-compose.yml](https://github.com/grandelli/docker-tensorflow-tfx-airflow-stack/blob/master/docker-compose.yml) in a folder accessible from your non-root user. Let's highlight few relevant sections of this file before launching it.
+The first thing to do is to upload the Docker-Compose configuration file [docker-compose.yml](https://github.com/grandelli/docker-tensorflow-tfx-airflow-stack/blob/master/docker/docker-compose.yml) in a folder accessible from your non-root user. Let's highlight few relevant sections of this file before launching it.
 
 The first important remark is that Dockers's container should be **stateless** and without data persistency. As a matter of fact, a good practice in favour of container re-use and sharing is to avoid any commit. Where should we store our trained models, our notebooks, or our Airflow DAGs?
 Docker owns the concept of [volume](https://docs.docker.com/storage/volumes/), folders residing on the host file system, which can be mounted to the containers at startup. These folders will allow for persistent data storage.
@@ -238,7 +240,7 @@ Some comments on this service:
 ``` console
 $ docker run --gpus all -it --rm -v ${HOME}/notebooks:/tf/notebooks -p 8888:8888 tensorflow/tensorflow:latest-gpu-py3-jupyter
 ```
-**Heads-up**: Jupyter is a local notebook, which is typically accessible through local host at http://localhost:8888. Since in our case we are running on a remote server, we need to establish an SSH tunnel to access it. Not going into details on how to establish an SSH tunnel here.
+**Heads-up**: Jupyter is a local notebook, which is typically accessible through local host at http://localhost:8888. Since in our case we are running on a remote server, we need to establish an SSH tunnel to access it. Not going into details on how to establish an SSH tunnel in this guide, but you can follow this [link](https://ljvmiranda921.github.io/notebook/2018/01/31/running-a-jupyter-notebook/).
 
 Once started up everything, and created SSH tunneling, you can access Jupyter notebook at http://localhost:8888/ (enter the Jupyter Token statically configured).
 
@@ -297,8 +299,8 @@ $ docker-compose stop
 ```
 
 ## Future Improvements
-* Analyze the adoption of Jupyter Hub to remove the local constraint of Jupyter Notebook
 * Update the guide as soon as there will be a new Docker-Compose release fully compliant to Docker's native GPU support
+* Create an Hello World documentation
 
 ## Authors
 
